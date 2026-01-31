@@ -32,19 +32,30 @@
 - [x] Units Generation - Completed on 2026-01-31T23:29:06+09:00
 
 ### 🟢 CONSTRUCTION PHASE (per-unit)
-- [ ] Functional Design - EXECUTE (per-unit)
-- [ ] NFR Requirements - EXECUTE (per-unit)
-- [ ] NFR Design - EXECUTE (per-unit)
-- [ ] Infrastructure Design - EXECUTE (per-unit)
-- [ ] Code Planning - EXECUTE (per-unit, ALWAYS)
-- [ ] Code Generation - EXECUTE (per-unit, ALWAYS)
+#### U2: Authentication Domain
+- [x] Functional Design - Completed on 2026-01-31T23:50:00+09:00
+- [x] NFR Requirements - Completed on 2026-02-01T00:58:00+09:00
+- [x] NFR Design - Completed on 2026-02-01T01:29:00+09:00
+- [x] Infrastructure Design - Completed on 2026-02-01T02:37:00+09:00
+- [ ] Code Planning - EXECUTE (ALWAYS, next)
+- [ ] Code Generation - EXECUTE (ALWAYS)
+
+#### U1: Course Management Domain
+- [ ] Functional Design - EXECUTE
+- [ ] NFR Requirements - EXECUTE
+- [ ] NFR Design - EXECUTE
+- [ ] Infrastructure Design - EXECUTE
+- [ ] Code Planning - EXECUTE (ALWAYS)
+- [ ] Code Generation - EXECUTE (ALWAYS)
+
+#### Build and Test (All Units)
 - [ ] Build and Test - EXECUTE (ALWAYS)
 
 ### 🟡 OPERATIONS PHASE
 - [ ] Operations - PLACEHOLDER
 
 ## Current Status
-- **Lifecycle Phase**: INCEPTION
-- **Current Stage**: Workflow Planning Complete - Awaiting Approval
-- **Next Stage**: Application Design
-- **Status**: Ready for user review and approval of execution plan
+- **Lifecycle Phase**: CONSTRUCTION
+- **Current Stage**: Infrastructure Design Complete - U2: Authentication Domain
+- **Next Stage**: Code Planning - U2: Authentication Domain
+- **Status**: Ready for Code Planning and Generation

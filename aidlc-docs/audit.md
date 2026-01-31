@@ -346,3 +346,217 @@
 **Next Stage**: 実行計画に基づき、各ユニットの詳細設計とコード生成を開始
 
 ---
+
+## U2: Functional Design - Complete
+**Timestamp**: 2026-01-31T23:50:00+09:00
+**Context**: U2: Authentication Domain - Functional Design完了
+**Action**: Generated business-logic-model.md, business-rules.md, domain-entities.md
+**Artifacts**: ビジネスロジックモデル、ビジネスルール、ドメインエンティティ定義
+
+---
+
+## U2: Functional Design - User Approval
+**Timestamp**: 2026-01-31T23:50:00+09:00
+**User Input**: "Approve - Proceed to NFR Requirements"
+**Context**: User approved functional design artifacts
+**Action**: Proceeding to NFR Requirements phase
+
+---
+
+## U2: NFR Requirements - Complete
+**Timestamp**: 2026-02-01T00:58:00+09:00
+**Context**: U2: Authentication Domain - NFR Requirements完了
+**Action**: Generated nfr-requirements.md, tech-stack-decisions.md
+**Artifacts**: NFR要件定義、技術スタック決定
+
+---
+
+## U2: NFR Requirements - User Approval
+**Timestamp**: 2026-02-01T00:58:00+09:00
+**User Input**: "Approve - Proceed to NFR Design"
+**Context**: User approved NFR requirements artifacts
+**Action**: Proceeding to NFR Design phase
+
+---
+
+## U2: NFR Design - Planning Questions Created
+**Timestamp**: 2026-02-01T01:02:19+09:00
+**Action**: Created u2-authentication-nfr-design-plan.md with 12 planning questions
+**Context**: Waiting for user to answer questions about NFR design patterns and logical components
+**File**: aidlc-docs/construction/plans/u2-authentication-nfr-design-plan.md
+
+---
+
+## U2: NFR Design - User Responses Received
+**Timestamp**: 2026-02-01T01:20:46+09:00
+**User Input**: "完了"
+**Action**: Reading user responses from u2-authentication-nfr-design-plan.md
+**Context**: All 12 questions answered, proceeding to analyze responses
+
+**User Decisions**:
+- **Session Validation Caching**: BFF JWT検証（ステートレス）+ RDS永続化
+- **User Profile Caching**: 短期キャッシュ（5分TTL）
+- **Circuit Breaker**: opossum ライブラリ使用
+- **Rate Limiting Storage**: Upstash Redis（分散ストレージ）
+- **Async Processing**: Lambda非同期呼び出し（軽量アプローチ）
+- **DB Connection Pooling**: 動的調整（負荷に応じた自動調整）
+- **Secrets Caching**: 短期キャッシュ（5分TTL）
+- **Distributed Tracing Sampling**: 動的サンプリング（エラー100%、成功環境別）
+- **Health Check**: 標準（データベース接続確認含む）
+- **Logging Strategy**: 動的レベル（環境変数で切り替え）
+- **Correlation ID**: API Gateway生成（X-Ray trace ID使用）
+- **Failover Testing**: AI障害シミュレーション（ステージング）+ Aurora 1クリック（本番初回）
+
+---
+
+## U2: NFR Design - Artifacts Generated
+**Timestamp**: 2026-02-01T01:27:22+09:00
+**Action**: All NFR design artifacts successfully generated
+**Context**: NFR design patterns and logical components defined
+
+**Generated Artifacts**:
+- nfr-design-patterns.md (Resilience, Performance, Scalability, Security, Observability patterns)
+- logical-components.md (Caching, Message Queue, API Gateway, Monitoring, Health Check, Failover Testing)
+
+**Environment Configuration Update**:
+- Stages: dev (開発環境統合) and prod (本番環境)
+- User feedback incorporated: dev + staging merged into single dev environment
+
+---
+
+## U2: NFR Design - Approval Request
+**Timestamp**: 2026-02-01T01:30:30+09:00
+**AI Prompt**: "NFR Design Complete - Please review NFR design artifacts"
+**Context**: All mandatory artifacts generated, awaiting user approval
+
+---
+
+## U2: NFR Design - User Approval
+**Timestamp**: 2026-02-01T01:34:30+09:00
+**User Input**: "✅ Continue to Next Stage - Approve NFR design and proceed to Infrastructure Design"
+**Context**: User approved NFR design artifacts
+**Action**: Proceeding to Infrastructure Design phase
+
+---
+
+## U2: Infrastructure Design - Planning Questions Created
+**Timestamp**: 2026-02-01T02:27:26+09:00
+**Action**: Created u2-authentication-infrastructure-design-plan.md with 12 planning questions
+**Context**: Waiting for user to answer questions about infrastructure mapping and deployment architecture
+**File**: aidlc-docs/construction/plans/u2-authentication-infrastructure-design-plan.md
+
+---
+
+## U2: Infrastructure Design - User Responses Received
+**Timestamp**: 2026-02-01T02:27:26+09:00
+**User Input**: All questions answered in plan file
+**Action**: Reading user responses from u2-authentication-infrastructure-design-plan.md
+**Context**: All 12 questions answered, proceeding to generate infrastructure artifacts
+
+**User Decisions**:
+- **Compute Platform**: ECS on Fargate (AWS CDK/Terraform管理、dev環境コスト削減設計)
+- **ECS Configuration**: 標準（0.5 vCPU, 1GB）
+- **VPC Strategy**: 環境別（prod: 3層構造、dev: Publicのみでコスト最小化）
+- **Multi-AZ**: dev: Single-AZ、prod: Multi-AZ (2 AZs)
+- **Database ACU**: dev: 0.5-4、prod: 0.5-16
+- **API Entry**: API Gateway + ALB両方
+- **Custom Domain**: 環境別ドメイン
+- **Backup**: 環境別戦略（dev: 1日、prod: 30日）
+- **Deployment**: Blue-Green
+- **Alerting**: Slack + Twilio（緊急時）
+- **Budget**: 最小限（$50-100/月）
+
+---
+
+## U2: Infrastructure Design - Artifacts Generated
+**Timestamp**: 2026-02-01T02:37:00+09:00
+**Action**: All infrastructure design artifacts successfully generated
+**Context**: Infrastructure mapping and deployment architecture defined
+
+**Generated Artifacts**:
+- infrastructure-design.md (Compute, Network, Database, API Gateway, Monitoring, Security, CI/CD infrastructure)
+- deployment-architecture.md (Architecture diagrams, deployment strategies, scaling, disaster recovery, cost optimization)
+
+**Infrastructure Summary**:
+- **Compute**: ECS Fargate (ARM64 Graviton2 for cost savings)
+- **Network**: Environment-specific (prod: 3-tier VPC, dev: Public subnet only)
+- **Database**: Hybrid approach (dev: Neon, prod: Aurora Serverless v2)
+- **Deployment**: Blue-Green for production, Rolling for development
+- **Monitoring**: CloudWatch + X-Ray + Slack/Twilio alerting
+- **Cost**: ~$20/month (dev) + ~$150/month (prod) = ~$170/month total
+
+---
+
+## U2: Infrastructure Design - Approval Request
+**Timestamp**: 2026-02-01T02:37:00+09:00
+**AI Prompt**: "Infrastructure Design Complete - Please review infrastructure design artifacts"
+**Context**: All mandatory artifacts generated, awaiting user approval
+
+---
+
+## U2: Infrastructure Design - User Approval
+**Timestamp**: 2026-02-01T02:41:11+09:00
+**User Input**: "Continue to Next Stage - Approve infrastructure design and proceed to Code Planning"
+**Context**: User approved infrastructure design artifacts
+**Action**: Proceeding to Code Planning phase
+
+---
+
+## U2: Code Planning - Start
+**Timestamp**: 2026-02-01T02:41:11+09:00
+**Context**: Beginning Code Planning phase for U2: Authentication Domain
+**Action**: Analyzing unit context and creating detailed code generation plan
+
+---
+
+## U2: Code Planning - Plan Created
+**Timestamp**: 2026-02-01T02:46:31+09:00
+**Action**: Code generation plan successfully created
+**Context**: Comprehensive plan with 25 steps across 9 phases
+
+**Plan Summary**:
+- **Total Steps**: 25
+- **Total Files**: ~70+ files
+- **MVP Stories**: D1.1 (Google OAuth), M5.1 (Session management)
+- **Technology Stack**: Node.js 20.x + TypeScript 5.x + Express.js 4.x
+- **Database**: Aurora Serverless v2 (PostgreSQL)
+- **Deployment**: AWS Lambda/ECS Fargate
+- **Code Location**: `u2-authentication/src/` (workspace root)
+
+**Phases**:
+1. Project Structure Setup
+2. Database Layer (Schema, Connection, Repository)
+3. Business Logic Layer (OAuth, Session, Token, User services)
+4. API Layer (Middleware, Controllers, Routes)
+5. Application Entry Point
+6. Utilities and Helpers
+7. Configuration and Documentation
+8. Infrastructure and Deployment
+9. Final Validation
+
+**File**: aidlc-docs/construction/plans/u2-authentication-code-generation-plan.md
+
+---
+
+## U2: Code Planning - Approval Request
+**Timestamp**: 2026-02-01T02:46:31+09:00
+**AI Prompt**: "Code Planning Complete - Please review code generation plan and approve to proceed with code generation"
+**Context**: Comprehensive code generation plan ready for user approval
+
+---
+
+## U2: Code Planning - User Approval
+**Timestamp**: 2026-02-01T02:49:35+09:00
+**User Input**: "Approve & Continue - Approve plan and proceed to Code Generation (Part 2)"
+**Context**: User approved code generation plan
+**Action**: Proceeding to Code Generation phase
+
+---
+
+## U2: Code Generation - Start
+**Timestamp**: 2026-02-01T02:49:35+09:00
+**Context**: Beginning Code Generation phase for U2: Authentication Domain
+**Action**: Executing approved code generation plan step by step
+**Plan**: aidlc-docs/construction/plans/u2-authentication-code-generation-plan.md
+
+---

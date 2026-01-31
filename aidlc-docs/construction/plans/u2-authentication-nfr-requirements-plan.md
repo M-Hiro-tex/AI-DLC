@@ -81,8 +81,8 @@
   - [ ] Deployment procedures
 
 ### Step 7: Generate NFR Requirements Artifacts
-- [ ] Create `aidlc-docs/construction/u2-authentication/nfr-requirements/nfr-requirements.md`
-- [ ] Create `aidlc-docs/construction/u2-authentication/nfr-requirements/tech-stack-decisions.md`
+- [x] Create `aidlc-docs/construction/u2-authentication/nfr-requirements/nfr-requirements.md`
+- [x] Create `aidlc-docs/construction/u2-authentication/nfr-requirements/tech-stack-decisions.md`
 
 ---
 
