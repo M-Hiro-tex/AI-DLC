@@ -159,7 +159,7 @@
 ---
 
 #### Step 5: Generate Repository Unit Tests
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: Repositoryレイヤーのユニットテストを作成
 
 **Actions**:
@@ -191,7 +191,7 @@
 ### Phase 3: Business Logic Layer Generation
 
 #### Step 6: Generate OAuth Service
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: OAuth 2.0認証フロー実装（Google, GitHub）
 
 **Actions**:
@@ -216,7 +216,7 @@
 ---
 
 #### Step 7: Generate Session Service
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: セッション管理ロジック実装
 
 **Actions**:
@@ -236,7 +236,7 @@
 ---
 
 #### Step 8: Generate Token Service
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: JWT生成・検証ロジック実装
 
 **Actions**:
@@ -255,7 +255,7 @@
 ---
 
 #### Step 9: Generate User Profile Service
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: ユーザープロファイル管理ロジック実装
 
 **Actions**:
@@ -273,7 +273,7 @@
 ---
 
 #### Step 10: Generate Business Logic Unit Tests
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: ビジネスロジックレイヤーのユニットテストを作成
 
 **Actions**:

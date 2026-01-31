@@ -1,163 +1,185 @@
 /**
- * Database Connection Pool Management
+ * Database Connection Management using RDS Data API
  * 
- * Manages PostgreSQL connection pool with:
- * - Automatic retry with exponential backoff
- * - Health checks
- * - Graceful shutdown
+ * Manages database connections using AWS RDS Data API with:
+ * - No connection pooling needed (HTTP-based)
+ * - Automatic credential management via Secrets Manager
+ * - IAM authentication
+ * - Simplified Lambda integration
  */
 
-import { Pool, PoolConfig, PoolClient } from 'pg';
+import {
+  RDSDataClient,
+  ExecuteStatementCommand,
+  BatchExecuteStatementCommand,
+  BeginTransactionCommand,
+  CommitTransactionCommand,
+  RollbackTransactionCommand,
+} from '@aws-sdk/client-rds-data';
 import { logger } from '../utils/logger';
 
 /**
- * Connection pool singleton
+ * RDS Data API Client singleton
  */
-let pool: Pool | null = null;
+let dataApiClient: RDSDataClient | null = null;
 
 /**
- * Connection configuration from environment variables
+ * Database configuration from environment variables
  */
-function getPoolConfig(): PoolConfig {
-  const config: PoolConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
+export interface DataApiConfig {
+  resourceArn: string;
+  secretArn: string;
+  database: string;
+}
+
+function getDataApiConfig(): DataApiConfig {
+  const config: DataApiConfig = {
+    resourceArn: process.env.DB_CLUSTER_ARN || '',
+    secretArn: process.env.DB_SECRET_ARN || '',
     database: process.env.DB_NAME || 'auth_db',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD,
-    min: parseInt(process.env.DB_POOL_MIN || '5', 10),
-    max: parseInt(process.env.DB_POOL_MAX || '20', 10),
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
   };
 
-  // Use connection string if DATABASE_URL is provided (for Aurora Serverless)
-  if (process.env.DATABASE_URL) {
-    config.connectionString = process.env.DATABASE_URL;
+  if (!config.resourceArn || !config.secretArn) {
+    throw new Error(
+      'Missing required environment variables: DB_CLUSTER_ARN and DB_SECRET_ARN must be set'
+    );
   }
 
   return config;
 }
 
 /**
- * Initialize database connection pool
+ * Initialize RDS Data API client
  * 
- * @param maxRetries - Maximum number of connection attempts
- * @param retryDelayMs - Initial delay between retries (exponential backoff)
- * @returns Initialized connection pool
+ * @returns Initialized RDS Data API client
  */
-export async function initializePool(
-  maxRetries: number = 5,
-  retryDelayMs: number = 1000
-): Promise<Pool> {
-  if (pool) {
-    logger.info('Database pool already initialized');
-    return pool;
+export function initializeDataApiClient(): RDSDataClient {
+  if (dataApiClient) {
+    logger.info('RDS Data API client already initialized');
+    return dataApiClient;
   }
 
-  const config = getPoolConfig();
-  pool = new Pool(config);
-
-  // Set up event listeners
-  pool.on('error', (err) => {
-    logger.error('Unexpected database pool error', { error: err.message });
+  const region = process.env.AWS_REGION || 'ap-northeast-1';
+  
+  dataApiClient = new RDSDataClient({
+    region,
   });
 
-  pool.on('connect', () => {
-    logger.debug('New database connection established');
+  logger.info('RDS Data API client initialized successfully', {
+    region,
+    database: process.env.DB_NAME,
   });
 
-  pool.on('remove', () => {
-    logger.debug('Database connection removed from pool');
-  });
-
-  // Attempt connection with retry logic
-  let attempt = 0;
-  let lastError: Error | null = null;
-
-  while (attempt < maxRetries) {
-    try {
-      // Test connection
-      const client = await pool.connect();
-      await client.query('SELECT 1');
-      client.release();
-
-      logger.info('Database connection pool initialized successfully', {
-        host: config.host || 'via connection string',
-        database: config.database || 'from connection string',
-        poolMin: config.min,
-        poolMax: config.max,
-      });
-
-      return pool;
-    } catch (error) {
-      lastError = error as Error;
-      attempt++;
-
-      if (attempt < maxRetries) {
-        const delay = retryDelayMs * Math.pow(2, attempt - 1);
-        logger.warn('Database connection failed, retrying...', {
-          attempt,
-          maxRetries,
-          retryInMs: delay,
-          error: lastError.message,
-        });
-
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-  }
-
-  // All retries failed
-  logger.error('Failed to initialize database pool after all retries', {
-    attempts: maxRetries,
-    lastError: lastError?.message,
-  });
-
-  throw new Error(
-    `Failed to connect to database after ${maxRetries} attempts: ${lastError?.message}`
-  );
+  return dataApiClient;
 }
 
 /**
- * Get the database connection pool
+ * Get the RDS Data API client
  * 
- * @returns Connection pool instance
- * @throws Error if pool is not initialized
+ * @returns RDS Data API client instance
+ * @throws Error if client is not initialized
  */
-export function getPool(): Pool {
-  if (!pool) {
-    throw new Error('Database pool not initialized. Call initializePool() first.');
+export function getDataApiClient(): RDSDataClient {
+  if (!dataApiClient) {
+    return initializeDataApiClient();
   }
-  return pool;
+  return dataApiClient;
 }
 
 /**
- * Execute a query using a connection from the pool
+ * Get database configuration
  * 
- * @param text - SQL query text
- * @param params - Query parameters
+ * @returns Database configuration object
+ */
+export function getDbConfig(): DataApiConfig {
+  return getDataApiConfig();
+}
+
+/**
+ * Execute a SQL statement using RDS Data API
+ * 
+ * @param sql - SQL statement to execute
+ * @param parameters - Query parameters
  * @returns Query result
  */
-export async function query(text: string, params?: any[]) {
-  const pool = getPool();
+export async function executeStatement(
+  sql: string,
+  parameters?: Array<{ name: string; value: any }>
+) {
+  const client = getDataApiClient();
+  const config = getDataApiConfig();
   const start = Date.now();
 
   try {
-    const result = await pool.query(text, params);
+    const command = new ExecuteStatementCommand({
+      resourceArn: config.resourceArn,
+      secretArn: config.secretArn,
+      database: config.database,
+      sql,
+      parameters,
+      includeResultMetadata: true,
+    });
+
+    const result = await client.send(command);
     const duration = Date.now() - start;
 
-    logger.debug('Database query executed', {
-      query: text.substring(0, 100),
+    logger.debug('SQL statement executed', {
+      sql: sql.substring(0, 100),
       duration,
-      rows: result.rowCount,
+      numberOfRecordsUpdated: result.numberOfRecordsUpdated,
     });
 
     return result;
   } catch (error) {
     const duration = Date.now() - start;
-    logger.error('Database query failed', {
-      query: text.substring(0, 100),
+    logger.error('SQL statement execution failed', {
+      sql: sql.substring(0, 100),
+      duration,
+      error: (error as Error).message,
+    });
+    throw error;
+  }
+}
+
+/**
+ * Execute multiple SQL statements in a batch
+ * 
+ * @param sql - SQL statement template
+ * @param parameterSets - Array of parameter sets
+ * @returns Batch execution result
+ */
+export async function batchExecuteStatement(
+  sql: string,
+  parameterSets: Array<Array<{ name: string; value: any }>>
+) {
+  const client = getDataApiClient();
+  const config = getDataApiConfig();
+  const start = Date.now();
+
+  try {
+    const command = new BatchExecuteStatementCommand({
+      resourceArn: config.resourceArn,
+      secretArn: config.secretArn,
+      database: config.database,
+      sql,
+      parameterSets,
+    });
+
+    const result = await client.send(command);
+    const duration = Date.now() - start;
+
+    logger.debug('Batch SQL statement executed', {
+      sql: sql.substring(0, 100),
+      batchSize: parameterSets.length,
+      duration,
+    });
+
+    return result;
+  } catch (error) {
+    const duration = Date.now() - start;
+    logger.error('Batch SQL statement execution failed', {
+      sql: sql.substring(0, 100),
+      batchSize: parameterSets.length,
       duration,
       error: (error as Error).message,
     });
@@ -171,27 +193,69 @@ export async function query(text: string, params?: any[]) {
  * @param callback - Transaction callback function
  * @returns Transaction result
  */
-export async function transaction<T>(
-  callback: (client: PoolClient) => Promise<T>
+export async function executeTransaction<T>(
+  callback: (transactionId: string) => Promise<T>
 ): Promise<T> {
-  const pool = getPool();
-  const client = await pool.connect();
+  const client = getDataApiClient();
+  const config = getDataApiConfig();
+  let transactionId: string | undefined;
 
   try {
-    await client.query('BEGIN');
-    const result = await callback(client);
-    await client.query('COMMIT');
+    // Begin transaction
+    const beginCommand = new BeginTransactionCommand({
+      resourceArn: config.resourceArn,
+      secretArn: config.secretArn,
+      database: config.database,
+    });
 
-    logger.debug('Transaction committed successfully');
+    const beginResult = await client.send(beginCommand);
+    transactionId = beginResult.transactionId;
+
+    if (!transactionId) {
+      throw new Error('Failed to begin transaction: no transaction ID returned');
+    }
+
+    logger.debug('Transaction begun', { transactionId });
+
+    // Execute transaction callback
+    const result = await callback(transactionId);
+
+    // Commit transaction
+    const commitCommand = new CommitTransactionCommand({
+      resourceArn: config.resourceArn,
+      secretArn: config.secretArn,
+      transactionId,
+    });
+
+    await client.send(commitCommand);
+    logger.debug('Transaction committed successfully', { transactionId });
+
     return result;
   } catch (error) {
-    await client.query('ROLLBACK');
-    logger.error('Transaction rolled back', {
+    // Rollback transaction on error
+    if (transactionId) {
+      try {
+        const rollbackCommand = new RollbackTransactionCommand({
+          resourceArn: config.resourceArn,
+          secretArn: config.secretArn,
+          transactionId,
+        });
+
+        await client.send(rollbackCommand);
+        logger.debug('Transaction rolled back', { transactionId });
+      } catch (rollbackError) {
+        logger.error('Transaction rollback failed', {
+          transactionId,
+          error: (rollbackError as Error).message,
+        });
+      }
+    }
+
+    logger.error('Transaction failed', {
+      transactionId,
       error: (error as Error).message,
     });
     throw error;
-  } finally {
-    client.release();
   }
 }
 
@@ -202,20 +266,17 @@ export async function transaction<T>(
  */
 export async function checkHealth(): Promise<boolean> {
   try {
-    if (!pool) {
-      logger.warn('Health check failed: pool not initialized');
-      return false;
+    const result = await executeStatement('SELECT NOW() as time');
+
+    if (result.records && result.records.length > 0) {
+      logger.debug('Database health check passed', {
+        serverTime: result.records[0][0].stringValue,
+      });
+      return true;
     }
 
-    const client = await pool.connect();
-    const result = await client.query('SELECT NOW() as time');
-    client.release();
-
-    logger.debug('Database health check passed', {
-      serverTime: result.rows[0].time,
-    });
-
-    return true;
+    logger.warn('Health check failed: no records returned');
+    return false;
   } catch (error) {
     logger.error('Database health check failed', {
       error: (error as Error).message,
@@ -225,57 +286,60 @@ export async function checkHealth(): Promise<boolean> {
 }
 
 /**
- * Get pool statistics
+ * Helper function to convert RDS Data API parameters
  * 
- * @returns Pool statistics object
+ * @param params - Key-value pairs of parameters
+ * @returns Array of RDS Data API parameters
  */
-export function getPoolStats() {
-  if (!pool) {
-    return null;
-  }
-
-  return {
-    totalCount: pool.totalCount,
-    idleCount: pool.idleCount,
-    waitingCount: pool.waitingCount,
-  };
+export function toDataApiParameters(params: Record<string, any>) {
+  return Object.entries(params).map(([name, value]) => ({
+    name,
+    value: convertToDataApiValue(value),
+  }));
 }
 
 /**
- * Gracefully close the database connection pool
+ * Convert a value to RDS Data API parameter format
  * 
- * This should be called during application shutdown
+ * @param value - Value to convert
+ * @returns RDS Data API value object
  */
-export async function closePool(): Promise<void> {
-  if (!pool) {
-    logger.info('No database pool to close');
-    return;
+function convertToDataApiValue(value: any) {
+  if (value === null || value === undefined) {
+    return { isNull: true };
   }
 
-  try {
-    await pool.end();
-    pool = null;
-    logger.info('Database connection pool closed successfully');
-  } catch (error) {
-    logger.error('Error closing database pool', {
-      error: (error as Error).message,
-    });
-    throw error;
+  if (typeof value === 'string') {
+    return { stringValue: value };
   }
+
+  if (typeof value === 'number') {
+    if (Number.isInteger(value)) {
+      return { longValue: value };
+    }
+    return { doubleValue: value };
+  }
+
+  if (typeof value === 'boolean') {
+    return { booleanValue: value };
+  }
+
+  if (value instanceof Date) {
+    return { stringValue: value.toISOString() };
+  }
+
+  if (Buffer.isBuffer(value)) {
+    return { blobValue: value };
+  }
+
+  // For objects and arrays, serialize to JSON string
+  return { stringValue: JSON.stringify(value) };
 }
 
 /**
- * Setup graceful shutdown handlers
- * 
- * Automatically closes the pool on process termination
+ * No need for graceful shutdown with Data API
+ * (HTTP-based, no persistent connections)
  */
 export function setupGracefulShutdown(): void {
-  const shutdown = async (signal: string) => {
-    logger.info(`${signal} received, closing database connections...`);
-    await closePool();
-    process.exit(0);
-  };
-
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('SIGINT', () => shutdown('SIGINT'));
+  logger.info('RDS Data API does not require graceful shutdown (HTTP-based)');
 }
