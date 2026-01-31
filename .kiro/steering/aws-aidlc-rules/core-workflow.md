@@ -11,7 +11,7 @@ The AI model intelligently assesses what stages are needed based on:
 4. Risk and impact assessment
 
 ## MANDATORY: Rule Details Loading
-**CRITICAL**: When performing any phase, you MUST read and use relevant content from rule detail files in `.claude/aws-aidlc-rule-details/` directory.
+**CRITICAL**: When performing any phase, you MUST read and use relevant content from rule detail files in `.kiro/aws-aidlc-rule-details/` directory.
 
 **Common Rules**: ALWAYS load common rules at workflow start:
 - Load `common/process-overview.md` for workflow overview
@@ -40,7 +40,7 @@ The AI model intelligently assesses what stages are needed based on:
 **CRITICAL**: When starting ANY software development request, you MUST display the welcome message.
 
 **How to Display Welcome Message**:
-1. Load the welcome message from `.claude/aws-aidlc-rule-details/common/welcome-message.md`
+1. Load the welcome message from `.kiro/aws-aidlc-rule-details/common/welcome-message.md`
 2. Display the complete message to the user
 3. This should only be done ONCE at the start of a new workflow
 4. Do NOT load this file in subsequent interactions to save context space
