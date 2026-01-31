@@ -60,9 +60,35 @@ To confirm that the AI-DLC rules are correctly loaded in your Kiro CLI, follow t
 2. Check your context contents: `/context show`
 3. Verify that you see all entries for `.kiro/steering/aws-aidlc-rules` in the displayed list of rules.
 
-If you do not see the `aws-aidlc-rules` rules loaded, please check the directory where you previously issued the `mkdir` and `cp` commands.  
+If you do not see the `aws-aidlc-rules` rules loaded, please check the directory where you previously issued the `mkdir` and `cp` commands.
 
 ![AI-DLC Rules in Kiro CLI](./assets/images/kiro-cli-aidlc-rules-loaded.png?raw=true "AI-DLC Rules in Kiro CLI")
+
+### Claude Code for VSCode
+
+AI-DLC can be used with [Claude Code](https://claude.com/claude-code) by placing the rules in your project's `.claude` directory. The rules will be automatically loaded by Claude Code.
+
+Copy the AI-DLC workflow to your project's workspace under the `<project-root>/.claude` folder:
+
+```bash
+cp -R ../aidlc-workflows/.claude .
+```
+
+Alternatively, if you want to set it up manually:
+
+```bash
+mkdir -p .claude
+cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rules .claude/
+cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rule-details .claude/
+```
+
+To confirm that the AI-DLC rules are correctly loaded:
+
+1. Open your project in VSCode with the Claude Code extension
+2. Start a Claude Code conversation
+3. The rules from `.claude/aws-aidlc-rules/` will be automatically included in the context
+
+For detailed instructions and usage guide, see [.claude/README.md](./.claude/README.md).
 
 ### Usage
 
@@ -109,6 +135,7 @@ Have one of our supported platforms/tools for Assisted AI Coding installed:
 
 - [Kiro CLI](https://kiro.dev/cli/)
 - [Amazon Q Developer IDE plugin](https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/q-in-IDE.html)
+- [Claude Code for VSCode](https://claude.com/claude-code)
 - [Kiro IDE](https://kiro.dev/) (coming soon)
 
 ## Tenets
