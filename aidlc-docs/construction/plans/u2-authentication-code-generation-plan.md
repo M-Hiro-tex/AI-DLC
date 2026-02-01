@@ -313,7 +313,7 @@
 ### Phase 4: API Layer Generation
 
 #### Step 11: Generate Express Middleware
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: 共通ミドルウェアを実装
 
 **Actions**:
@@ -345,7 +345,7 @@
 ---
 
 #### Step 12: Generate API Controllers
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: RESTful APIコントローラーを実装
 
 **Actions**:
@@ -375,7 +375,7 @@
 ---
 
 #### Step 13: Generate API Routes
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: Expressルーティング設定を実装
 
 **Actions**:
@@ -407,36 +407,148 @@
 **Status**: [ ]  
 **Description**: APIレイヤーのユニットテスト・統合テストを作成
 
-**Actions**:
-- [ ] Create `u2-authentication/tests/controllers/auth.controller.test.ts`
-  - Test POST /auth/google/login (OAuth URL generation)
-  - Test GET /auth/google/callback (successful authentication)
-  - Test GET /auth/google/callback (invalid state, should fail)
-  - Test POST /auth/refresh (successful token refresh)
-  - Test POST /auth/logout (session revocation)
-- [ ] Create `u2-authentication/tests/controllers/user.controller.test.ts`
-  - Test GET /users/me (authenticated user)
-  - Test GET /users/me (unauthenticated, should fail 401)
-  - Test GET /users/me/sessions (list sessions)
-- [ ] Create `u2-authentication/tests/integration/oauth-flow.test.ts`
-  - End-to-end OAuth flow test (Google)
-  - End-to-end OAuth flow test (GitHub)
-  - Test session creation and validation
-  - Test token refresh flow
+**Files Status**:
+- ✅ `auth.controller.test.ts` - 部分的に実装済み（要完成）
+- ✅ `user.controller.test.ts` - 部分的に実装済み（要完成）
+- ✅ `oauth-flow.test.ts` - スケルトンのみ（要完全実装）
 
-**Files to Generate**:
+**Actions**:
+
+### A. Complete `u2-authentication/tests/controllers/auth.controller.test.ts`
+
+**Currently Implemented**:
+- [x] Google OAuth URL generation test
+- [x] Invalid state error handling test
+- [x] Missing authorization code error handling test
+
+**Need to Implement**:
+- [ ] Google OAuth callback success case
+  - Mock OAuthService.handleCallback() to return user info
+  - Mock UserService.createOrUpdateUser() to return user
+  - Mock SessionService.createSession() to return session tokens
+  - Assert response contains accessToken, refreshToken, expiresAt, user
+- [ ] Token refresh success case
+  - Mock SessionService.refreshSession() to return new tokens
+  - Assert new accessToken and refreshToken are returned
+- [ ] Token refresh with invalid refresh token (should fail 401)
+  - Mock SessionService to throw UnauthorizedError
+  - Assert error is passed to next()
+- [ ] Token refresh without session ID (should fail 400)
+  - Already has basic structure, complete assertions
+- [ ] Logout success case
+  - Mock authenticated request with user
+  - Mock SessionService.terminateSession()
+  - Assert success message
+- [ ] Logout without authentication (should fail 401)
+  - Mock request without user
+  - Assert UnauthorizedError
+
+### B. Complete `u2-authentication/tests/controllers/user.controller.test.ts`
+
+**Currently Implemented**:
+- [x] GET /users/me without authentication (should fail)
+
+**Need to Implement**:
+- [ ] GET /users/me success case
+  - Mock UserService.getUserProfile() to return user
+  - Assert response contains user profile with all fields
+- [ ] GET /users/me when user not found
+  - Mock UserService to throw NotFoundError
+  - Assert error is passed to next()
+- [ ] GET /users/me/sessions success case
+  - Mock SessionService.getUserSessions() to return sessions array
+  - Assert response contains sessions with correct fields
+- [ ] GET /users/me/sessions when no sessions exist
+  - Mock SessionService to return empty array
+  - Assert response contains empty sessions array
+- [ ] GET /users/me/sessions without authentication
+  - Mock request without user
+  - Assert UnauthorizedError
+
+### C. Complete `u2-authentication/tests/integration/oauth-flow.test.ts`
+
+**Currently Implemented**:
+- ❌ All tests are TODO skeletons only
+
+**Need to Implement**:
+
+**Setup & Teardown**:
+- [ ] beforeAll(): Initialize test Express app instance
+- [ ] beforeAll(): Set up test database connection (or use in-memory DB)
+- [ ] beforeAll(): Seed initial test data if needed
+- [ ] afterAll(): Clean up test data
+- [ ] afterAll(): Close database connections
+
+**Google OAuth Flow**:
+- [ ] Test POST /api/v1/auth/google/login
+  - Assert returns authUrl containing 'accounts.google.com'
+  - Assert returns provider: 'google'
+- [ ] Test GET /api/v1/auth/google/callback with valid code and state
+  - Mock OAuth provider response
+  - Assert session is created
+  - Store accessToken, refreshToken, sessionId for subsequent tests
+- [ ] Test session creation verification
+  - Use returned accessToken to access protected endpoint
+  - Assert user data is correctly stored
+
+**GitHub OAuth Flow**:
+- [ ] Test POST /api/v1/auth/github/login
+  - Assert returns authUrl containing 'github.com'
+  - Assert returns provider: 'github'
+- [ ] Test GET /api/v1/auth/github/callback with valid code and state
+  - Mock OAuth provider response
+  - Assert session is created
+
+**Session Management Flow**:
+- [ ] Test access to protected endpoint (GET /api/v1/users/me) with valid token
+  - Assert returns user profile
+- [ ] Test POST /api/v1/auth/refresh with valid refresh token
+  - Assert returns new accessToken and refreshToken
+- [ ] Test POST /api/v1/auth/logout
+  - Assert session is revoked
+- [ ] Test protected endpoint access after logout (should fail 401)
+
+**Token Refresh Flow**:
+- [ ] Test refreshing expired access token
+  - Create session with short-lived access token
+  - Wait for expiration
+  - Refresh and verify new token works
+- [ ] Test refresh with invalid refresh token (should fail 401)
+- [ ] Test refresh with revoked session (should fail 401)
+
+**Multi-Session Flow**:
+- [ ] Test creating multiple sessions for same user
+  - Create 2-3 sessions with different tokens
+  - Assert all sessions are active
+- [ ] Test GET /api/v1/users/me/sessions
+  - Assert returns all active sessions
+- [ ] Test POST /api/v1/auth/logout-all
+  - Assert all sessions are revoked
+  - Verify none of the tokens work anymore
+
+**Error Handling**:
+- [ ] Test OAuth callback with invalid state (should fail 400)
+- [ ] Test OAuth callback without authorization code (should fail 400)
+- [ ] Test OAuth provider errors (mock provider error response)
+
+**Files to Complete**:
 - `u2-authentication/tests/controllers/auth.controller.test.ts`
 - `u2-authentication/tests/controllers/user.controller.test.ts`
 - `u2-authentication/tests/integration/oauth-flow.test.ts`
 
 **Story Mapping**: D1.1, M5.1 (test coverage for API layer)
 
+**Notes**:
+- Tests marked as TODO will be implemented in a future step
+- Focus is on establishing test structure and basic assertions
+- Full mock implementation and edge case coverage to be added later
+
 ---
 
 ### Phase 5: Application Entry Point
 
 #### Step 15: Generate Express Application
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: Expressアプリケーションのエントリーポイントを実装
 
 **Actions**:
@@ -471,22 +583,22 @@
 ### Phase 6: Utilities and Helpers
 
 #### Step 16: Generate Utility Modules
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: 共通ユーティリティモジュールを実装
 
 **Actions**:
-- [ ] Create `u2-authentication/src/utils/logger.ts`
+- [x] Create `u2-authentication/src/utils/logger.ts`
   - Structured logging utility
   - Log levels (ERROR, WARN, INFO, DEBUG)
   - CloudWatch integration
-- [ ] Create `u2-authentication/src/utils/errors.ts`
+- [x] Create `u2-authentication/src/utils/errors.ts`
   - Custom error classes
   - Error response formatting
-- [ ] Create `u2-authentication/src/utils/validators.ts`
+- [x] Create `u2-authentication/src/utils/validators.ts`
   - Email format validation
   - Display name validation
   - Token format validation
-- [ ] Create `u2-authentication/src/utils/secrets.ts`
+- [x] Create `u2-authentication/src/utils/secrets.ts`
   - AWS Secrets Manager client
   - Secret caching with TTL
   - Automatic secret refresh
@@ -504,7 +616,7 @@
 ### Phase 7: Configuration and Documentation
 
 #### Step 17: Generate Configuration Files
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: アプリケーション設定ファイルを作成
 
 **Actions**:
@@ -535,7 +647,7 @@
 ---
 
 #### Step 18: Generate API Documentation
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: API仕様ドキュメントを作成
 
 **Actions**:
@@ -560,7 +672,7 @@
 ---
 
 #### Step 19: Generate README and Development Guide
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: README とセットアップガイドを作成
 
 **Actions**:
@@ -590,7 +702,7 @@
 ### Phase 8: Infrastructure and Deployment
 
 #### Step 20: Generate Terraform/CDK Infrastructure Code
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: インフラストラクチャコード（Terraform or AWS CDK）を作成
 
 **Actions**:
@@ -619,7 +731,7 @@
 ---
 
 #### Step 21: Generate Deployment Scripts
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: デプロイメント自動化スクリプトを作成
 
 **Actions**:
@@ -648,7 +760,7 @@
 ---
 
 #### Step 22: Generate CI/CD Pipeline Configuration
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: GitHub Actions ワークフローを作成
 
 **Actions**:
@@ -675,7 +787,7 @@
 ---
 
 #### Step 23: Generate Monitoring and Observability Configuration
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: CloudWatch + X-Ray 監視設定を作成
 
 **Actions**:
@@ -706,7 +818,7 @@
 ### Phase 9: Final Validation
 
 #### Step 24: Generate Smoke Tests
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: デプロイ後のスモークテストを作成
 
 **Actions**:
@@ -726,7 +838,7 @@
 ---
 
 #### Step 25: Code Generation Summary
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: コード生成完了サマリーを作成
 
 **Actions**:

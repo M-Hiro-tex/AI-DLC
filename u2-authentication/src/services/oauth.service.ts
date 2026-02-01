@@ -25,14 +25,12 @@ export interface OAuthUserInfo {
 export class OAuthService {
   private providers: Map<string, OAuthProvider>;
   private oauthStateRepo: OAuthStateRepository;
-  private userRepo: UserRepository;
 
   constructor(
     oauthStateRepo: OAuthStateRepository,
-    userRepo: UserRepository
+    _userRepo: UserRepository
   ) {
     this.oauthStateRepo = oauthStateRepo;
-    this.userRepo = userRepo;
     this.providers = new Map();
     
     // Register providers
@@ -56,8 +54,15 @@ export class OAuthService {
       // Generate secure random state token
       const state = crypto.randomBytes(32).toString('base64url');
       
-      // Store state token in database (expires in 10 minutes)
-      await this.oauthStateRepo.createState(state, provider);
+      // Calculate expiry (10 minutes from now)
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      
+      // Store state token in database
+      await this.oauthStateRepo.createState({
+        stateToken: state,
+        provider,
+        expiresAt
+      });
 
       // Generate authorization URL
       const authUrl = oauthProvider.generateAuthUrl(state, redirectUri);
@@ -95,7 +100,7 @@ export class OAuthService {
         throw new UnauthorizedError('Invalid or expired state token');
       }
 
-      if (stateRecord.used) {
+      if (stateRecord.usedAt) {
         logger.warn('OAuth state token already used', { state: state.substring(0, 8) + '...' });
         throw new UnauthorizedError('State token already used');
       }

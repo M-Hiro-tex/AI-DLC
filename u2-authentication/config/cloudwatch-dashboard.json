@@ -1,0 +1,163 @@
+{
+  "dashboardName": "U2-Authentication-${STAGE}",
+  "widgets": [
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [ "AWS/Lambda", "Invocations", { "stat": "Sum", "label": "Total Invocations" } ],
+          [ ".", "Errors", { "stat": "Sum", "label": "Errors", "yAxis": "right" } ],
+          [ ".", "Throttles", { "stat": "Sum", "label": "Throttles", "yAxis": "right" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "${REGION}",
+        "title": "Lambda Function Metrics",
+        "period": 300,
+        "yAxis": {
+          "left": {
+            "label": "Count"
+          },
+          "right": {
+            "label": "Errors/Throttles"
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [ "AWS/Lambda", "Duration", { "stat": "Average", "label": "Avg Duration" } ],
+          [ "...", { "stat": "p50", "label": "p50" } ],
+          [ "...", { "stat": "p90", "label": "p90" } ],
+          [ "...", { "stat": "p99", "label": "p99" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "${REGION}",
+        "title": "Lambda Duration (ms)",
+        "period": 300,
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [ "AWS/ApiGateway", "Count", { "stat": "Sum", "label": "Total Requests" } ],
+          [ ".", "4XXError", { "stat": "Sum", "label": "4XX Errors" } ],
+          [ ".", "5XXError", { "stat": "Sum", "label": "5XX Errors" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "${REGION}",
+        "title": "API Gateway Requests and Errors",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [ "AWS/ApiGateway", "Latency", { "stat": "Average", "label": "Avg Latency" } ],
+          [ "...", { "stat": "p50", "label": "p50" } ],
+          [ "...", { "stat": "p90", "label": "p90" } ],
+          [ "...", { "stat": "p99", "label": "p99" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "${REGION}",
+        "title": "API Gateway Latency (ms)",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [ "AWS/RDS", "ServerlessDatabaseCapacity", { "stat": "Average", "label": "Avg ACUs" } ],
+          [ "...", { "stat": "Maximum", "label": "Max ACUs" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "${REGION}",
+        "title": "Database Capacity (ACUs)",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [ "AWS/RDS", "DatabaseConnections", { "stat": "Average", "label": "Connections" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "${REGION}",
+        "title": "Database Connections",
+        "period": 300
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/U2AuthenticationStack-${STAGE}-AuthFunction'\n| fields @timestamp, userId, action, statusCode\n| filter action like /login|logout|refresh/\n| stats count() as requests by action, statusCode\n| sort requests desc",
+        "region": "${REGION}",
+        "stacked": false,
+        "title": "User Authentication Actions",
+        "view": "table"
+      }
+    }
+  ]
+}
+        "query": "SOURCE '/aws/lambda/U2AuthenticationStack-${STAGE}-AuthFunction'\n| fields @timestamp, @message\n| filter @message like /ERROR/\n| sort @timestamp desc\n| limit 20",
+        "region": "${REGION}",
+        "stacked": false,
+        "title": "Recent Error Logs",
+        "view": "table"
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [ { "expression": "m1/m2*100", "label": "Error Rate %", "id": "e1" } ],
+          [ "AWS/Lambda", "Errors", { "id": "m1", "visible": false } ],
+          [ ".", "Invocations", { "id": "m2", "visible": false } ]
+        ],
+        "view": "singleValue",
+        "region": "${REGION}",
+        "title": "Error Rate",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [ "AWS/Lambda", "ConcurrentExecutions", { "stat": "Maximum", "label": "Concurrent Executions" } ]
+        ],
+        "view": "singleValue",
+        "region": "${REGION}",
+        "title": "Lambda Concurrency",
+        "period": 300
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/U2AuthenticationStack-${STAGE}-AuthFunction'\n| fields @timestamp, method, path, statusCode, duration\n| filter method = 'POST' and path like '/auth/'\n| stats count() as requests by path, statusCode\n| sort requests desc",
+        "region": "${REGION}",
+        "stacked": false,
+        "title": "Authentication Endpoint Usage",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
