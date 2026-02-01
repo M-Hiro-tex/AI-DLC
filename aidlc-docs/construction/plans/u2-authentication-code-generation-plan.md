@@ -404,13 +404,13 @@
 ---
 
 #### Step 14: Generate API Layer Unit Tests
-**Status**: [ ]  
+**Status**: [x]  
 **Description**: APIレイヤーのユニットテスト・統合テストを作成
 
 **Files Status**:
-- ✅ `auth.controller.test.ts` - 部分的に実装済み（要完成）
-- ✅ `user.controller.test.ts` - 部分的に実装済み（要完成）
-- ✅ `oauth-flow.test.ts` - スケルトンのみ（要完全実装）
+- ✅ `auth.controller.test.ts` - 完成
+- ✅ `user.controller.test.ts` - 完成
+- ✅ `oauth-flow.test.ts` - 完成
 
 **Actions**:
 

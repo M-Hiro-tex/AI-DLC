@@ -84,24 +84,28 @@ describe('AuthController', () => {
         email: 'test@example.com',
         displayName: 'Test User',
         avatarUrl: 'https://example.com/avatar.jpg',
-        providerId: 'google-123'
+        providerId: 'google-123',
+        provider: 'google' as const
       };
 
       const mockUser = {
         id: 'user-123',
         email: 'test@example.com',
-        display_name: 'Test User',
-        avatar_url: 'https://example.com/avatar.jpg'
+        displayName: 'Test User',
+        avatarUrl: 'https://example.com/avatar.jpg'
       };
 
       const mockSession = {
         sessionId: 'session-123',
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
-        expiresAt: new Date()
+        expiresAt: new Date('2026-02-02T00:00:00.000Z')
       };
 
-      // TODO: Add proper mocking for services
+      // Mock services
+      jest.spyOn(authController['oauthService'], 'handleCallback').mockResolvedValue(mockUserInfo);
+      jest.spyOn(authController['userService'], 'createOrUpdateUser').mockResolvedValue(mockUser as any);
+      jest.spyOn(authController['sessionService'], 'createSession').mockResolvedValue(mockSession);
 
       await authController.handleGoogleCallback(
         mockRequest as Request,
@@ -109,7 +113,17 @@ describe('AuthController', () => {
         mockNext
       );
 
-      // TODO: Add assertions
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        expiresAt: mockSession.expiresAt,
+        user: {
+          id: 'user-123',
+          email: 'test@example.com',
+          displayName: 'Test User',
+          avatarUrl: 'https://example.com/avatar.jpg'
+        }
+      });
     });
 
     it('should fail with invalid state', async () => {
@@ -152,11 +166,40 @@ describe('AuthController', () => {
     });
 
     it('should refresh access token successfully', async () => {
-      // TODO: Add test implementation
+      const mockSession = {
+        sessionId: 'test-session-id',
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        expiresAt: new Date('2026-02-02T00:00:00.000Z')
+      };
+
+      jest.spyOn(authController['sessionService'], 'refreshSession').mockResolvedValue(mockSession);
+
+      await authController.refreshToken(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
+
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        expiresAt: mockSession.expiresAt
+      });
     });
 
     it('should fail with invalid refresh token', async () => {
-      // TODO: Add test implementation
+      jest.spyOn(authController['sessionService'], 'refreshSession').mockRejectedValue(
+        new Error('Invalid refresh token')
+      );
+
+      await authController.refreshToken(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
+
+      expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
     });
 
     it('should fail without session ID', async () => {
@@ -177,21 +220,79 @@ describe('AuthController', () => {
 
   describe('POST /auth/logout', () => {
     it('should logout successfully', async () => {
-      // TODO: Add test implementation
+      const mockAuthRequest = mockRequest as any;
+      mockAuthRequest.user = {
+        userId: 'test-user-id',
+        email: 'test@example.com',
+        displayName: 'Test User'
+      };
+      mockAuthRequest.body = {
+        sessionId: 'test-session-id'
+      };
+
+      jest.spyOn(authController['sessionService'], 'terminateSession').mockResolvedValue(undefined);
+
+      await authController.logout(
+        mockAuthRequest,
+        mockResponse as Response,
+        mockNext
+      );
+
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        message: 'Logged out successfully'
+      });
+      expect(authController['sessionService'].terminateSession).toHaveBeenCalledWith(
+        'test-session-id',
+        'test-user-id'
+      );
     });
 
     it('should fail without authentication', async () => {
-      // TODO: Add test implementation
+      mockRequest.body = {
+        sessionId: 'test-session-id'
+      };
+
+      await authController.logout(
+        mockRequest as any,
+        mockResponse as Response,
+        mockNext
+      );
+
+      expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 
   describe('POST /auth/logout-all', () => {
     it('should logout all sessions successfully', async () => {
-      // TODO: Add test implementation
+      const mockAuthRequest = mockRequest as any;
+      mockAuthRequest.user = {
+        userId: 'test-user-id',
+        email: 'test@example.com',
+        displayName: 'Test User'
+      };
+
+      jest.spyOn(authController['sessionService'], 'terminateAllSessions').mockResolvedValue(undefined);
+
+      await authController.logoutAll(
+        mockAuthRequest,
+        mockResponse as Response,
+        mockNext
+      );
+
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        message: 'All sessions logged out successfully'
+      });
+      expect(authController['sessionService'].terminateAllSessions).toHaveBeenCalledWith('test-user-id');
     });
 
     it('should fail without authentication', async () => {
-      // TODO: Add test implementation
+      await authController.logoutAll(
+        mockRequest as any,
+        mockResponse as Response,
+        mockNext
+      );
+
+      expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 });
