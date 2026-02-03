@@ -28,7 +28,7 @@ export class TemplateController {
       logger.info('Listing templates', { userId, category });
 
       const templates = await this.templateService.listTemplates(
-        category as string | undefined
+        category ? { category: category as any } : undefined
       );
 
       res.status(200).json({

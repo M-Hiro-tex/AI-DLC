@@ -87,8 +87,8 @@ export function requestId(req: Request, res: Response, next: NextFunction): void
   // Add to response headers
   res.setHeader('X-Request-ID', requestId);
   
-  // Add to logger context
-  logger.addContext('requestId', requestId);
+  // Add to logger context using appendKeys
+  logger.appendKeys({ requestId });
 
   next();
 }
@@ -105,7 +105,7 @@ function generateRequestId(): string {
  * 
  * Adds security-related headers to responses.
  */
-export function securityHeaders(req: Request, res: Response, next: NextFunction): void {
+export function securityHeaders(_req: Request, res: Response, next: NextFunction): void {
   // Prevent clickjacking
   res.setHeader('X-Frame-Options', 'DENY');
   
@@ -120,3 +120,6 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   
   next();
 }
+
+// Combined logging middleware for app.ts compatibility
+export const loggingMiddleware = requestLogger;

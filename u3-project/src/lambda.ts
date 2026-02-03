@@ -52,11 +52,9 @@ if (require.main === module) {
   handler(testEvent, {
     functionName: 'u3-project-local',
     awsRequestId: 'local-test-id'
-  } as any, (error: any, result: any) => {
-    if (error) {
-      console.error('Lambda error:', error);
-    } else {
-      console.log('Lambda response:', JSON.stringify(result, null, 2));
-    }
+  } as any).then((result: any) => {
+    console.log('Lambda response:', JSON.stringify(result, null, 2));
+  }).catch((error: any) => {
+    console.error('Lambda error:', error);
   });
 }

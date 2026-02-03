@@ -1,7 +1,11 @@
 import express, { Application } from 'express';
 import { errorMiddleware } from './middleware/error.middleware';
 import { loggingMiddleware } from './middleware/logging.middleware';
-import routes from './routes';
+import { createRoutes } from './routes';
+import { ProjectService } from './services/project.service';
+import { TemplateService } from './services/template.service';
+import { projectRepository } from './repositories/project.repository';
+import { templateRepository } from './repositories/template.repository';
 
 /**
  * Express Application Configuration
@@ -23,9 +27,10 @@ export function createApp(): Application {
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     res.header('Access-Control-Allow-Credentials', 'true');
     
-    // Handle preflight
+  // Handle preflight
     if (req.method === 'OPTIONS') {
-      return res.sendStatus(200);
+      res.sendStatus(200);
+      return;
     }
     next();
   });
@@ -33,11 +38,16 @@ export function createApp(): Application {
   // Request logging middleware
   app.use(loggingMiddleware);
 
+  // Initialize services
+  const projectService = new ProjectService(projectRepository);
+  const templateService = new TemplateService(templateRepository, projectService);
+
   // API routes
-  app.use('/api/v1', routes);
+  const routes = createRoutes(projectService, templateService);
+  app.use(routes);
 
   // Root health check
-  app.get('/', (req, res) => {
+  app.get('/', (_req, res) => {
     res.json({
       service: 'U3-Project',
       status: 'healthy',

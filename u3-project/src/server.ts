@@ -7,7 +7,7 @@ import { createApp } from './app';
  * This is NOT used in Lambda deployment.
  */
 
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 
 const app = createApp();

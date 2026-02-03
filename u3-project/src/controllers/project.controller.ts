@@ -102,18 +102,23 @@ export class ProjectController {
 
       const result = await this.projectService.listProjects(userId, {
         status: query.status,
-        limit: query.limit,
-        lastEvaluatedKey: query.lastEvaluatedKey,
+        page: 1,
+        pageSize: query.limit,
+        sortBy: 'updatedAt',
+        sortOrder: 'desc',
         tags: query.tags,
       });
 
       res.status(200).json({
         success: true,
-        data: result.projects,
+        data: result.items,
         pagination: {
-          limit: query.limit,
-          lastEvaluatedKey: result.lastEvaluatedKey,
-          hasMore: !!result.lastEvaluatedKey,
+          page: result.page,
+          pageSize: result.pageSize,
+          totalCount: result.totalCount,
+          totalPages: result.totalPages,
+          hasNext: result.hasNext,
+          hasPrevious: result.hasPrevious,
         },
       });
     } catch (error) {
@@ -198,9 +203,7 @@ export class ProjectController {
         return;
       }
 
-      const restoredProject = await this.projectService.updateProject(id, userId, {
-        // Restore by removing deletedAt
-      });
+      const restoredProject = await this.projectService.restoreProject(id, userId);
 
       res.status(200).json({
         success: true,
@@ -241,13 +244,12 @@ export class ProjectController {
         return;
       }
 
-      // Add new users to sharedWith list
-      const currentSharedWith = project.sharedWith || [];
-      const newSharedWith = [...new Set([...currentSharedWith, ...validatedData.userIds])];
-
-      const updatedProject = await this.projectService.updateProject(id, userId, {
-        // Update sharedWith field
-      });
+      // Share project with users
+      const updatedProject = await this.projectService.shareProject(
+        id,
+        userId,
+        validatedData.userIds
+      );
 
       res.status(200).json({
         success: true,
@@ -275,18 +277,17 @@ export class ProjectController {
 
       logger.info('Creating project from template', { userId, templateId: validatedData.templateId });
 
-      const project = await this.templateService.instantiateTemplate(
-        validatedData.templateId,
-        userId,
-        {
-          name: validatedData.name,
-          description: validatedData.description,
-        }
-      );
+      const result = await this.templateService.instantiateTemplate({
+        templateId: validatedData.templateId,
+        projectName: validatedData.name || 'Untitled Project',
+        projectDescription: validatedData.description,
+        ownerId: userId,
+      });
 
       res.status(201).json({
         success: true,
-        data: project,
+        data: result.project,
+        template: result.template,
         message: 'Project created from template successfully',
       });
     } catch (error) {

@@ -30,7 +30,7 @@ export function createRoutes(
   router.use('/api/v1', apiV1);
 
   // Root endpoint
-  router.get('/', (req, res) => {
+  router.get('/', (_req, res) => {
     res.json({
       service: 'u3-project',
       version: '1.0.0',
@@ -45,3 +45,6 @@ export function createRoutes(
 
   return router;
 }
+
+// Export as default for app.ts compatibility
+export default createRoutes;

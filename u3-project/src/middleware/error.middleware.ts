@@ -42,7 +42,7 @@ export function errorHandler(
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void {
   // Log the error
   logger.error('Error occurred', {
@@ -124,7 +124,7 @@ export function errorHandler(
  */
 export function notFoundHandler(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void {
   const error = new AppError(404, `Route not found: ${req.method} ${req.path}`);
@@ -143,3 +143,6 @@ export function asyncHandler(
     Promise.resolve(fn(req, res, next)).catch(next);
   };
 }
+
+// Export errorHandler as errorMiddleware for compatibility
+export const errorMiddleware = errorHandler;

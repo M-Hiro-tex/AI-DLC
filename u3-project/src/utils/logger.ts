@@ -26,7 +26,11 @@ export function logWithContext(
   context?: Record<string, any>
 ) {
   const logMethod = logger[level].bind(logger);
-  logMethod(message, context);
+  if (context) {
+    logMethod(message, context);
+  } else {
+    logMethod(message);
+  }
 }
 
 /**

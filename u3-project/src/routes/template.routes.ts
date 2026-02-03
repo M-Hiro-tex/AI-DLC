@@ -1,4 +1,4 @@
-omport { Router } from 'express';
+import { Router } from 'express';
 import { TemplateController } from '../controllers/template.controller';
 import { TemplateService } from '../services/template.service';
 import { authenticateToken } from '../middleware/auth.middleware';

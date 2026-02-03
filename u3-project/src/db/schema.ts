@@ -170,6 +170,7 @@ export interface ProjectSearchQuery {
   nameQuery?: string;
   tags?: string[];
   category?: string;
+  status?: ProjectStatus;
   sortBy: 'updatedAt' | 'createdAt' | 'name' | 'status';
   sortOrder: 'asc' | 'desc';
   page: number;

@@ -16,7 +16,7 @@ export function createHealthRoutes(): Router {
    * Basic health check endpoint
    * Returns 200 if the service is running
    */
-  router.get('/', (req: Request, res: Response) => {
+  router.get('/', (_req: Request, res: Response) => {
     res.status(200).json({
       status: 'healthy',
       service: 'u3-project',
@@ -30,7 +30,7 @@ export function createHealthRoutes(): Router {
    * Returns 200 if the service is ready to accept traffic
    * Checks database connectivity and other dependencies
    */
-  router.get('/ready', async (req: Request, res: Response) => {
+  router.get('/ready', async (_req: Request, res: Response) => {
     try {
       // TODO: Add database connectivity check
       // TODO: Add any other dependency checks
@@ -60,7 +60,7 @@ export function createHealthRoutes(): Router {
    * Liveness check endpoint
    * Returns 200 if the service is alive (not deadlocked)
    */
-  router.get('/live', (req: Request, res: Response) => {
+  router.get('/live', (_req: Request, res: Response) => {
     res.status(200).json({
       status: 'alive',
       service: 'u3-project',
