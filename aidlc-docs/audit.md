@@ -612,3 +612,97 @@
 - Alert email for CloudWatch alarms
 
 ---
+
+## U3: Infrastructure Design - Complete
+**Timestamp**: 2026-02-01T12:51:00+09:00
+**Context**: U3: Project Domain - Infrastructure Design完了
+**Action**: Generated infrastructure-design.md, deployment-architecture.md
+**Artifacts**: インフラストラクチャ設計、デプロイメントアーキテクチャ定義
+
+**Infrastructure Summary**:
+- **Compute**: Lambda (ドメイン別: U2=512MB, U3=1024MB) + API Gateway
+- **Database**: DynamoDB (On-Demand, Single Table, 2 GSIs)
+- **Security**: IAM (ドメイン別ロール) + Secrets Manager (全環境変数)
+- **Monitoring**: CloudWatch (1週間ログ保持、包括的アラーム) + X-Ray
+- **CDK Stacks**: 5 Stacks (Shared-Base + 環境×ドメイン)
+- **CI/CD**: GitHub Actions (基本的なパイプライン)
+- **Deployment**: Blue-Green (本番)、Direct (開発)
+
+---
+
+## U3: Infrastructure Design - User Approval
+**Timestamp**: 2026-02-01T12:54:30+09:00
+**User Input**: "Continue to Next Stage - Approve infrastructure design and proceed to Code Planning"
+**Context**: User approved infrastructure design artifacts
+**Action**: Proceeding to Code Planning phase
+
+---
+
+## U3: Code Planning - Complete
+**Timestamp**: 2026-02-01T12:58:52+09:00
+**Context**: U3: Project Domain - Code Planning完了
+**Action**: Generated u3-project-code-generation-plan.md
+**Plan Summary**:
+- **Total Steps**: 19 steps across 9 phases
+- **Total Files**: ~60+ files
+- **Technology Stack**: TypeScript + Express + DynamoDB + AWS Lambda
+- **MVP Stories**: 6 stories (D2.1, D5.1, D5.2, S1.2, S4.2, M5.1)
+- **Code Location**: `u3-project/` (workspace root)
+
+**Phases**:
+1. Project Structure Setup
+2. Database Layer (DynamoDB Single-Table)
+3. Business Logic Layer (Project, Template, Statistics services)
+4. API Layer (Controllers, Middleware, Routes)
+5. Application Entry Point
+6. Utilities and Helpers
+7. Configuration and Documentation
+8. Infrastructure and Deployment (AWS CDK)
+9. Testing (Integration, Smoke tests)
+
+---
+
+## U3: Code Planning - User Approval
+**Timestamp**: 2026-02-01T13:01:35+09:00
+**User Input**: "Approve & Continue - Approve plan and proceed to Code Generation (Part 2)"
+**Context**: User approved code generation plan
+**Action**: Proceeding to Code Generation phase
+
+---
+
+## U3: Code Generation - Start
+**Timestamp**: 2026-02-01T13:01:35+09:00
+**Context**: Beginning Code Generation phase for U3: Project Domain
+**Action**: Executing approved code generation plan step by step
+**Plan**: aidlc-docs/construction/plans/u3-project-code-generation-plan.md
+
+---
+
+## U3: Code Generation - Complete
+**Timestamp**: 2026-02-03T18:14:49+09:00
+**Status**: Complete
+**Context**: U3: Project Domain code generation completed all 9 phases
+**Files Generated**:
+- Phase 1: Project Structure (6 files)
+- Phase 2: Database Layer (4 files)
+- Phase 3: Business Logic Layer (6 files)
+- Phase 4: API Layer (15 files)
+- Phase 5: Application Entry (3 files)
+- Phase 6: Utilities (6 files)
+- Phase 7: Configuration & Docs (5 files)
+- Phase 8: Infrastructure & Deployment (10 files)
+- Phase 9: Testing (4 files - integration & smoke tests)
+
+**Total**: ~86 files with 8,000+ lines of production code
+
+**Key Components Generated**:
+- DynamoDB single-table design with GSIs
+- Project/Template CRUD services
+- Express.js API with comprehensive middleware
+- AWS CDK infrastructure (Lambda, API Gateway, DynamoDB)
+- Deployment scripts and automation
+- 59+ integration and smoke tests
+
+**Next Step**: Build and Test (All Units)
+
+---
